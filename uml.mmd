@@ -1,0 +1,161 @@
+classDiagram
+    %% Entidades Principais
+    class Usuario {
+        -String id
+        -String nome
+        -String email
+        -String senhaHash
+        -LocalDateTime dataCadastro
+        -Perfil perfil
+        +cadastrarPlanta()
+        +buscarPlantas()
+        +avaliarRegistro()
+    }
+
+    class Planta {
+        -String id
+        -String nomeCientifico
+        -String nomePopular
+        -String descricao
+        -Boolean nativa
+        -Boolean comestivel
+        -Boolean medicinal
+        -String usos
+        -String cuidados
+        -String imagemUrl
+        +isComestivel() Boolean
+        +isMedicinal() Boolean
+    }
+
+    class Localizacao {
+        -String id
+        -Double latitude
+        -Double longitude
+        -String endereco
+        -String descricao
+        -String regiao
+        +getCoordenadas() String
+    }
+
+    class RegistroPlanta {
+        -String id
+        -Usuario usuario
+        -Planta planta
+        -Localizacao localizacao
+        -LocalDateTime dataRegistro
+        -String observacoes
+        -String imagemUrl
+        -StatusRegistro status
+        +validarRegistro()
+        +atualizarStatus()
+    }
+
+    class Categoria {
+        -String id
+        -String nome
+        -String descricao
+        -TipoCategoria tipo
+    }
+
+    class Comentario {
+        -String id
+        -Usuario usuario
+        -RegistroPlanta registro
+        -String texto
+        -LocalDateTime data
+        -Integer avaliacao
+        +adicionarComentario()
+        +editarComentario()
+    }
+
+    %% Enums
+    class Perfil {
+        <<enumeration>>
+        ADMIN
+        MODERADOR
+        USUARIO
+        VISITANTE
+    }
+
+    class StatusRegistro {
+        <<enumeration>>
+        PENDENTE
+        APROVADO
+        REJEITADO
+        EM_ANALISE
+    }
+
+    class TipoCategoria {
+        <<enumeration>>
+        COMESTIVEL
+        MEDICINAL
+        NATIVA
+        EXOTICA
+        URBANA
+    }
+
+    %% Serviços e Controladores
+    class PlantaService {
+        +buscarPlantas(filtros)
+        +cadastrarPlanta(dados)
+        +validarPlanta(plantaId)
+        +obterPlantasPorLocalizacao(localizacao)
+    }
+
+    class UsuarioService {
+        +cadastrarUsuario(dados)
+        +autenticar(email, senha)
+        +recuperarSenha(email)
+        +atualizarPerfil(usuarioId, dados)
+    }
+
+    class MapaService {
+        +adicionarMarcador(localizacao, planta)
+        +buscarPlantasProximas(latitude, longitude, raio)
+        +gerarMapaRegioes()
+    }
+
+    class RelatorioService {
+        +gerarRelatorioUso()
+        +obterMetricasUsuarios()
+        +analisarRegioesAtivas()
+    }
+
+    class AuthController {
+        +login()
+        +logout()
+        +registrar()
+    }
+
+    class PlantaController {
+        +listarPlantas()
+        +detalharPlanta()
+        +cadastrarPlanta()
+        +pesquisarPlantas()
+    }
+
+    class MapaController {
+        +exibirMapa()
+        +filtrarMapa()
+        +adicionarRegistro()
+    }
+
+    %% Relacionamentos
+    Usuario "1" --> "*" RegistroPlanta : cadastra
+    Usuario "1" --> "*" Comentario : faz
+    
+    Planta "1" --> "*" RegistroPlanta : registrada em
+    Planta "*" --> "*" Categoria : possui
+    
+    Localizacao "1" --> "*" RegistroPlanta : localiza
+    RegistroPlanta "1" --> "*" Comentario : recebe
+    
+    PlantaService ..> Planta : gerencia
+    PlantaService ..> RegistroPlanta : processa
+    UsuarioService ..> Usuario : gerencia
+    MapaService ..> Localizacao : utiliza
+    MapaService ..> RegistroPlanta : visualiza
+    
+    AuthController ..> UsuarioService : usa
+    PlantaController ..> PlantaService : usa
+    MapaController ..> MapaService : usa

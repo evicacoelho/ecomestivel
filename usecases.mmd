@@ -1,0 +1,10 @@
+---
+config:
+  layout: fixed
+---
+flowchart TD
+    Usuario["Usuário"] --> CadastrarPlataforma["Cadastrar na plataforma"] & BuscarPlantas["Buscar plantas"] & VisualizarMapa["Visualizar mapa"] & RegistrarPlanta["Registrar nova planta"] & ComentarRegistros["Comentar em registros"] & AvaliarInformacoes["Avaliar informações"]
+    Moderador["Moderador"] --> ValidarRegistros["Validar registros"] & ModerarComentarios["Moderar comentários"] & GerenciarCategorias["Gerenciar categorias"]
+    Administrador["Administrador"] --> GerenciarUsuarios["Gerenciar usuários"] & VisualizarRelatorios["Visualizar relatórios"] & ConfigurarSistema["Configurar sistema"]
+    BuscarPlantas --> FiltrarLocalizacao["Filtrar por localização"] & FiltrarCategoria["Filtrar por categoria"]
+    RegistrarPlanta --> AdicionarLocalizacao["Adicionar localização"] & UploadImagem["Upload de imagem"]
