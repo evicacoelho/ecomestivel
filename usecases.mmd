@@ -1,10 +1,27 @@
----
-config:
-  layout: fixed
----
 flowchart TD
-    Usuario["Usuário"] --> CadastrarPlataforma["Cadastrar na plataforma"] & BuscarPlantas["Buscar plantas"] & VisualizarMapa["Visualizar mapa"] & RegistrarPlanta["Registrar nova planta"] & ComentarRegistros["Comentar em registros"] & AvaliarInformacoes["Avaliar informações"]
-    Moderador["Moderador"] --> ValidarRegistros["Validar registros"] & ModerarComentarios["Moderar comentários"] & GerenciarCategorias["Gerenciar categorias"]
-    Administrador["Administrador"] --> GerenciarUsuarios["Gerenciar usuários"] & VisualizarRelatorios["Visualizar relatórios"] & ConfigurarSistema["Configurar sistema"]
-    BuscarPlantas --> FiltrarLocalizacao["Filtrar por localização"] & FiltrarCategoria["Filtrar por categoria"]
-    RegistrarPlanta --> AdicionarLocalizacao["Adicionar localização"] & UploadImagem["Upload de imagem"]
+    Visitante --> UC1["Buscar Plantas"]
+    Visitante --> UC2["Visualizar Plantas"]
+    Visitante --> UC3["Visualizar Mapa"]
+    Visitante --> UC4["Registrar Conta"]
+    Visitante --> UC17["Filtrar Plantas"]
+    Visitante --> UC18
+    
+    Usuario --> UC1["Buscar Plantas"]
+    Usuario --> UC2["Visualizar Plantas"]
+    Usuario --> UC3["Visualizar Mapa"]
+    Usuario --> UC5["Login"]
+    Usuario --> UC6["Cadastrar Planta"]
+    Usuario --> UC9["Gerenciar Perfil"]
+    Usuario --> UC10["Ver Minhas Plantas"]
+    Usuario --> UC17["Filtrar Plantas"]
+    Usuario --> UC18["Recuperar Senha"]
+    Usuario --> UC19["Upload de Imagens"]
+    
+    Moderador --> UC11["Moderar Conteúdo"]
+    Moderador --> UC12["Moderar Registros"]
+    Moderador --> UC13["Gerenciar Categorias"]
+    
+    Admin --> UC14["Gerenciar Usuários"]
+    Admin --> UC15["Analytics"]
+    Admin --> UC16["Gerenciar Sistema"]
+    

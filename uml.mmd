@@ -1,161 +1,132 @@
+---
+title: É de Comer? - Diagrama de Classes UML
+---
+
 classDiagram
-    %% Entidades Principais
+    direction TB
+
     class Usuario {
-        -String id
-        -String nome
-        -String email
-        -String senhaHash
-        -LocalDateTime dataCadastro
-        -Perfil perfil
-        +cadastrarPlanta()
-        +buscarPlantas()
-        +avaliarRegistro()
+        +id : String
+        +nome : String
+        +email : String
+        +senhaHash : String
+        +perfil : PerfilUsuario
+        +avatarUrl : String
+        +reputacao : Integer
+        +dataCadastro : DateTime
+        
+        +login(email : String, senha : String)
+        +registrar(nome : String, email : String, senha : String)
+        +atualizarPerfil(dados : Object)
+        +recuperarSenha(email : String)
     }
-
+    
     class Planta {
-        -String id
-        -String nomeCientifico
-        -String nomePopular
-        -String descricao
-        -Boolean nativa
-        -Boolean comestivel
-        -Boolean medicinal
-        -String usos
-        -String cuidados
-        -String imagemUrl
-        +isComestivel() Boolean
-        +isMedicinal() Boolean
+        +id : String
+        +nomePopular : String
+        +nomeCientifico : String
+        +descricao : String
+        +comestivel : Boolean
+        +medicinal : Boolean
+        +nativa : Boolean
+        +usos : String
+        +cuidados : String
+        +criadoEm : DateTime
+        +atualizadoEm : DateTime
+        
+        +cadastrar(dados : Object, imagens : List)
+        +atualizar(dados : Object)
+        +buscar(filtros : Object)
+        +avaliar(usuarioId : String, valor : Integer)
     }
-
+    
     class Localizacao {
-        -String id
-        -Double latitude
-        -Double longitude
-        -String endereco
-        -String descricao
-        -String regiao
-        +getCoordenadas() String
+        +id : String
+        +latitude : Float
+        +longitude : Float
+        +endereco : String
+        +descricao : String
+        +regiao : String
+        +criadoEm : DateTime
     }
-
+    
     class RegistroPlanta {
-        -String id
-        -Usuario usuario
-        -Planta planta
-        -Localizacao localizacao
-        -LocalDateTime dataRegistro
-        -String observacoes
-        -String imagemUrl
-        -StatusRegistro status
-        +validarRegistro()
-        +atualizarStatus()
+        +id : String
+        +usuarioId : String
+        +plantaId : String
+        +localizacaoId : String
+        +observacoes : String
+        +status : StatusRegistro
+        +dataRegistro : DateTime
+        +atualizadoEm : DateTime
     }
-
+    
     class Categoria {
-        -String id
-        -String nome
-        -String descricao
-        -TipoCategoria tipo
+        +id : String
+        +nome : String
+        +descricao : String
+        +tipo : TipoCategoria
+        +criadoEm : DateTime
     }
-
+    
+    class ImagemPlanta {
+        +id : String
+        +registroId : String
+        +plantaId : String
+        +url : String
+        +nomeArquivo : String
+        +contentType : String
+        +tamanho : Integer
+        +dataUpload : DateTime
+    }
+    
     class Comentario {
-        -String id
-        -Usuario usuario
-        -RegistroPlanta registro
-        -String texto
-        -LocalDateTime data
-        -Integer avaliacao
-        +adicionarComentario()
-        +editarComentario()
+        +id : String
+        +usuarioId : String
+        +registroId : String
+        +plantaId : String
+        +texto : String
+        +avaliacao : Integer
+        +editado : Boolean
+        +data : DateTime
+        +atualizadoEm : DateTime
+    }
+    
+    class Avaliacao {
+        +id : String
+        +usuarioId : String
+        +plantaId : String
+        +valor : Integer
+        +criadoEm : DateTime
+        +atualizadoEm : DateTime
+    }
+    
+    class CategoriaPlanta {
+        +id : String
+        +plantaId : String
+        +categoriaId : String
+        +criadoEm : DateTime
     }
 
-    %% Enums
-    class Perfil {
-        <<enumeration>>
-        ADMIN
-        MODERADOR
-        USUARIO
-        VISITANTE
-    }
-
-    class StatusRegistro {
-        <<enumeration>>
-        PENDENTE
-        APROVADO
-        REJEITADO
-        EM_ANALISE
-    }
-
-    class TipoCategoria {
-        <<enumeration>>
-        COMESTIVEL
-        MEDICINAL
-        NATIVA
-        EXOTICA
-        URBANA
-    }
-
-    %% Serviços e Controladores
-    class PlantaService {
-        +buscarPlantas(filtros)
-        +cadastrarPlanta(dados)
-        +validarPlanta(plantaId)
-        +obterPlantasPorLocalizacao(localizacao)
-    }
-
-    class UsuarioService {
-        +cadastrarUsuario(dados)
-        +autenticar(email, senha)
-        +recuperarSenha(email)
-        +atualizarPerfil(usuarioId, dados)
-    }
-
-    class MapaService {
-        +adicionarMarcador(localizacao, planta)
-        +buscarPlantasProximas(latitude, longitude, raio)
-        +gerarMapaRegioes()
-    }
-
-    class RelatorioService {
-        +gerarRelatorioUso()
-        +obterMetricasUsuarios()
-        +analisarRegioesAtivas()
-    }
-
-    class AuthController {
-        +login()
-        +logout()
-        +registrar()
-    }
-
-    class PlantaController {
-        +listarPlantas()
-        +detalharPlanta()
-        +cadastrarPlanta()
-        +pesquisarPlantas()
-    }
-
-    class MapaController {
-        +exibirMapa()
-        +filtrarMapa()
-        +adicionarRegistro()
-    }
-
+    
     %% Relacionamentos
-    Usuario "1" --> "*" RegistroPlanta : cadastra
-    Usuario "1" --> "*" Comentario : faz
+    Usuario "1" -- "*" RegistroPlanta : registra
+    Usuario "1" -- "*" Comentario : escreve
+    Usuario "1" -- "*" Avaliacao : faz
     
-    Planta "1" --> "*" RegistroPlanta : registrada em
-    Planta "*" --> "*" Categoria : possui
+    Planta "1" -- "*" RegistroPlanta : possui
+    Planta "1" -- "*" CategoriaPlanta : categorizada
+    Planta "1" -- "*" ImagemPlanta : contém
+    Planta "1" -- "*" Comentario : recebe
+    Planta "1" -- "*" Avaliacao : avaliada
     
-    Localizacao "1" --> "*" RegistroPlanta : localiza
-    RegistroPlanta "1" --> "*" Comentario : recebe
+    Localizacao "1" -- "*" RegistroPlanta : localiza
+    Categoria "1" -- "*" CategoriaPlanta : classifica
     
-    PlantaService ..> Planta : gerencia
-    PlantaService ..> RegistroPlanta : processa
-    UsuarioService ..> Usuario : gerencia
-    MapaService ..> Localizacao : utiliza
-    MapaService ..> RegistroPlanta : visualiza
+    RegistroPlanta "1" -- "*" ImagemPlanta : tem
+    RegistroPlanta "1" -- "*" Comentario : contém
     
-    AuthController ..> UsuarioService : usa
-    PlantaController ..> PlantaService : usa
-    MapaController ..> MapaService : usa
+    %% Many-to-Many explícito
+    Planta "*" -- "*" Categoria : CategoriaPlanta
+    
+

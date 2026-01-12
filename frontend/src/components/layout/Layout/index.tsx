@@ -26,7 +26,7 @@ const Layout: React.FC = () => {
       >
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center' }}>
-            <p>© {new Date().getFullYear()} É de Comer? - Todos os direitos reservados</p>
+            <p>© {new Date().getFullYear()} É Comestível? © 2026 by <a href="https://github.com/evicacoelho">Emanuelle Coelho</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt=""/><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt=""/><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt=""/><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt=""/></p>
             <p>Projeto de conscientização sobre flora urbana</p>
           </Box>
         </Container>
