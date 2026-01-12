@@ -15,12 +15,10 @@ export const errorHandler = (
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Erro interno do servidor';
   
-  // Log error in development
   if (config.nodeEnv === 'development') {
     console.error(err);
   }
   
-  // Prisma errors
   if (err.code === 'P2002') {
     return res.status(409).json({
       error: 'Conflito',

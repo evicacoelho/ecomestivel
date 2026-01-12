@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Carregar variáveis de ambiente explicitamente
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 console.log('📡 DATABASE_URL:', process.env.DATABASE_URL ? 'Configurada' : 'NÃO CONFIGURADA');
@@ -15,7 +14,6 @@ const prisma = new PrismaClient({
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...');
 
-  // Criar categorias
   const categorias = [
     { nome: 'COMESTIVEL', tipo: TipoCategoria.COMESTIVEL, descricao: 'Plantas com frutos ou partes comestíveis' },
     { nome: 'MEDICINAL', tipo: TipoCategoria.MEDICINAL, descricao: 'Plantas com propriedades medicinais' },
@@ -43,7 +41,7 @@ async function main() {
   }
   console.log('✅ Categorias criadas/atualizadas');
 
-  // Criar usuários
+  // usuários
   const senhaHashAdmin = await bcrypt.hash('admin123', 10);
   const senhaHashUsuario = await bcrypt.hash('usuario123', 10);
   const senhaHashModerador = await bcrypt.hash('moderador123', 10);
@@ -90,7 +88,7 @@ async function main() {
   }
   console.log('✅ Usuários criados/atualizados');
 
-  // Criar plantas de exemplo
+  // MOCK DATA
   const plantas = [
     {
       nomePopular: 'Mangueira',
@@ -128,7 +126,6 @@ async function main() {
   ];
 
   for (const plantaData of plantas) {
-    // Verificar se planta já existe
     const existingPlanta = await prisma.planta.findFirst({
       where: { nomePopular: plantaData.nomePopular },
     });
@@ -163,14 +160,13 @@ async function main() {
       });
     }
 
-    // Adicionar categorias
+    // categorias
     for (const categoriaNome of plantaData.categorias) {
       const categoria = await prisma.categoria.findFirst({
         where: { nome: categoriaNome },
       });
 
       if (categoria) {
-        // Verificar se relação já existe
         const existingRelation = await prisma.categoriaPlanta.findFirst({
           where: {
             plantaId: planta.id,

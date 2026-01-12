@@ -14,7 +14,6 @@ const prisma = new PrismaClient();
 
 export class AuthService {
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    // Check if user exists
     const existingUser = await prisma.usuario.findUnique({
       where: { email: data.email },
     });
@@ -23,11 +22,9 @@ export class AuthService {
       throw new Error('Email já está em uso');
     }
     
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const senhaHash = await bcrypt.hash(data.senha, salt);
     
-    // Create user
     const user = await prisma.usuario.create({
       data: {
         nome: data.nome,
@@ -38,7 +35,6 @@ export class AuthService {
       },
     });
     
-    // Generate token
     const token = this.generateToken(user);
     
     return {
@@ -56,7 +52,6 @@ export class AuthService {
   }
   
   async login(data: LoginRequest): Promise<AuthResponse> {
-    // Find user
     const user = await prisma.usuario.findUnique({
       where: { email: data.email },
     });
@@ -65,14 +60,12 @@ export class AuthService {
       throw new Error('Credenciais inválidas');
     }
     
-    // Verify password
     const validPassword = await bcrypt.compare(data.senha, user.senhaHash);
     
     if (!validPassword) {
       throw new Error('Credenciais inválidas');
     }
     
-    // Generate token
     const token = this.generateToken(user);
     
     return {
@@ -155,18 +148,17 @@ export class AuthService {
     });
     
     if (!user) {
-      // Don't reveal if user exists
       return;
     }
     
-    // Generate reset token
+    // equeci minha senha
     const resetToken = jwt.sign(
       { userId: user.id, email: user.email },
       config.jwt.secret,
       { expiresIn: '1h' }
     );
     
-    // TODO: Send email with reset link
+    // TODO: RESET LINK
     console.log('Reset token (para testes):', resetToken);
   }
   

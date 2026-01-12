@@ -7,8 +7,6 @@ const plantaService = new PlantaService();
 export class ModeracaoController {
   async listarPendentes(req: Request, res: Response) {
     try {
-      // Esta função seria implementada para listar registros pendentes
-      // Por enquanto retornamos um array vazio
       res.json([]);
     } catch (error: any) {
       res.status(400).json({ error: error.message });

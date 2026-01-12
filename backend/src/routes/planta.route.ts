@@ -9,18 +9,16 @@ const router = Router();
 const plantaController = new PlantaController();
 const moderacaoController = new ModeracaoController();
 
-// Rotas públicas
 router.get('/', plantaController.buscarPlantas.bind(plantaController));
 router.get('/proximas', plantaController.buscarPlantasProximas.bind(plantaController));
 router.get('/:id', plantaController.obterPlantaPorId.bind(plantaController));
 
-// Rotas protegidas (usuários autenticados)
+// PROTECTED ROUTE
 router.post(
   '/', 
   authenticate, 
   upload.array('images', 5),
   (req: any, res: any, next: any) => {
-    // Middleware para processar form-data
     next();
   },
   plantaController.cadastrarPlanta.bind(plantaController)
@@ -30,7 +28,7 @@ router.put('/:id', authenticate, plantaController.atualizarPlanta.bind(plantaCon
 router.delete('/:id', authenticate, plantaController.deletarPlanta.bind(plantaController));
 router.post('/:id/avaliar', authenticate, plantaController.avaliarPlanta.bind(plantaController));
 
-// Rotas de moderação (apenas moderadores e admins)
+// PROTECTED ROUTE
 router.get(
   '/pendentes/listar',
   authenticate,

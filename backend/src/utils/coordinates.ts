@@ -8,7 +8,7 @@ export const calculateDistance = (
   lat2: number,
   lon2: number
 ): number => {
-  const R = 6371; // Raio da Terra em km
+  const R = 6371; // raio da Terra em km
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   

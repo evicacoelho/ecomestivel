@@ -75,15 +75,12 @@ export class PlantaController {
         return res.status(401).json({ error: 'Usuário não autenticado' });
       }
 
-      // Parse form data
       const dados = JSON.parse(req.body.dados || '{}');
       const images = req.files as Express.Multer.File[];
 
-      // Validar dados
       const mockReq = { body: dados } as Request;
       await Promise.all(plantaValidation.map(validation => validation.run(mockReq)));
       
-      // Validar manualmente
       const errors = {
         nomePopular: !dados.nomePopular ? 'Nome popular é obrigatório' : null,
         descricao: !dados.descricao ? 'Descrição é obrigatória' : 

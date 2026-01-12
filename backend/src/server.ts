@@ -9,7 +9,7 @@ import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
 
-// Middlewares
+// middlewares
 app.use(helmet());
 app.use(cors({
   origin: config.frontendUrl,
@@ -19,16 +19,12 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir arquivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Rotas
 app.use('/api', routes);
 
-// Middleware de erro
 app.use(errorHandler);
 
-// Rota 404
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });

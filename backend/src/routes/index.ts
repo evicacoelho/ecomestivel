@@ -7,7 +7,6 @@ const router = Router();
 router.use('/auth', authRoutes);
 router.use('/plantas', plantaRoutes);
 
-// Health check
 router.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 

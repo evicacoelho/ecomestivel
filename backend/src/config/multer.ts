@@ -4,7 +4,6 @@ import fs from 'fs';
 import { Request } from 'express';
 import { config } from './environment';
 
-// Create upload directories if they don't exist
 const uploadDirs = [
   'uploads/plantas',
   'uploads/avatares',

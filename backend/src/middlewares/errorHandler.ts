@@ -8,7 +8,6 @@ export const errorHandler = (
 ) => {
   console.error('Erro:', error);
 
-  // Erros de validação
   if (error.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
@@ -17,7 +16,6 @@ export const errorHandler = (
     });
   }
 
-  // Erros do multer (upload)
   if (error instanceof Error && error.message.includes('Tipo de arquivo')) {
     return res.status(400).json({
       success: false,
@@ -25,7 +23,6 @@ export const errorHandler = (
     });
   }
 
-  // Erro genérico
   res.status(500).json({
     success: false,
     message: 'Erro interno do servidor',

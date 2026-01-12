@@ -2,7 +2,6 @@ import multer from 'multer';
 import path from 'path';
 import { Request } from 'express';
 
-// Configuração do armazenamento
 const storage = multer.diskStorage({
   destination: (_req: Request, _file, cb) => {
     const uploadPath = process.env.UPLOAD_PATH || './uploads';
@@ -15,7 +14,6 @@ const storage = multer.diskStorage({
   }
 });
 
-// Filtro de arquivos
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = /jpeg|jpg|png|gif/;
   const isValid = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -27,7 +25,6 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
   }
 };
 
-// Configuração do multer
 export const upload = multer({
   storage,
   fileFilter,
@@ -36,5 +33,4 @@ export const upload = multer({
   }
 });
 
-// Middleware para múltiplos arquivos
 export const uploadMiddleware = upload.array('images', 5);

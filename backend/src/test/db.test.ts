@@ -1,19 +1,16 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// 1. Carregar .env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 console.log('🔍 Verificando variáveis de ambiente:');
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? '✅ Presente' : '❌ Ausente');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
-// 2. Testar se a URL está no formato correto
 if (process.env.DATABASE_URL) {
   const url = process.env.DATABASE_URL;
   console.log('📋 Formato da URL:', url.startsWith('postgresql://') ? '✅ Correto' : '❌ Errado');
   
-  // Extrair partes da URL para debug
   try {
     const urlObj = new URL(url);
     console.log('🔗 Protocolo:', urlObj.protocol);
@@ -26,7 +23,6 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-// 3. Tentar importar e usar Prisma
 try {
   const { PrismaClient } = require('@prisma/client');
   console.log('📦 Prisma Client carregado com sucesso');

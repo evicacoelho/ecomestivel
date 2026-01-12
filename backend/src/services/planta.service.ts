@@ -17,7 +17,7 @@ export class PlantaService {
     
     const where: any = {};
     
-    // Text search
+    // busca textual
     if (filtros.search) {
       where.OR = [
         { nomePopular: { contains: filtros.search, mode: 'insensitive' } },
@@ -26,7 +26,7 @@ export class PlantaService {
       ];
     }
     
-    // Filters
+    // filtros
     if (filtros.comestivel !== undefined) {
       where.comestivel = filtros.comestivel;
     }
@@ -39,7 +39,7 @@ export class PlantaService {
       where.nativa = filtros.nativa;
     }
     
-    // Category filter
+    // categorias
     if (filtros.categoria && filtros.categoria.length > 0) {
       where.categorias = {
         some: {
@@ -50,9 +50,8 @@ export class PlantaService {
       };
     }
     
-    // Location filter
+    // localicação
     if (filtros.latitude && filtros.longitude && filtros.raioKm) {
-      // Get all locations within bounding box first
       const plantasComLocalizacoes = await prisma.planta.findMany({
         where,
         include: {
@@ -64,7 +63,7 @@ export class PlantaService {
         },
       });
       
-      // Filter by distance
+      // distância
       const plantasFiltradas = plantasComLocalizacoes.filter(planta => {
         return planta.registros.some(registro => {
           const distance = calculateDistance(
@@ -80,7 +79,7 @@ export class PlantaService {
       const total = plantasFiltradas.length;
       const plantasPaginadas = plantasFiltradas.slice(skip, skip + limit);
       
-      // Format response
+      // response
       const data = await Promise.all(
         plantasPaginadas.map(async planta => await this.formatPlanta(planta))
       );
@@ -94,7 +93,7 @@ export class PlantaService {
       };
     }
     
-    // Regular pagination (without location filter)
+    // paginação padrão
     const [plantas, total] = await Promise.all([
       prisma.planta.findMany({
         where,
@@ -169,7 +168,7 @@ export class PlantaService {
       },
     });
     
-    // Calculate distance for each plant
+    // distância das plantas
     const plantasComDistancia = todasPlantas.map(planta => {
       const distanciaMinima = Math.min(
         ...planta.registros.map(registro => 
@@ -188,7 +187,7 @@ export class PlantaService {
       };
     });
     
-    // Filter by distance and sort
+    // filtro organizado de distância
     const plantasFiltradas = plantasComDistancia
       .filter(item => item.distancia <= raioKm)
       .sort((a, b) => a.distancia - b.distancia)
@@ -251,9 +250,7 @@ export class PlantaService {
   }
   
   async cadastrarPlanta(userId: string, data: CreatePlantaRequest, images?: Express.Multer.File[]): Promise<Planta> {
-    // Start transaction
     return await prisma.$transaction(async (tx) => {
-      // Create or find categories
       const categorias = await Promise.all(
         data.categoria.map(async (categoriaNome) => {
           let categoria = await tx.categoria.findFirst({
@@ -274,7 +271,7 @@ export class PlantaService {
         })
       );
       
-      // Create plant
+      // criar planta
       const planta = await tx.planta.create({
         data: {
           nomePopular: data.nomePopular,
@@ -293,7 +290,7 @@ export class PlantaService {
         },
       });
       
-      // Create location
+      // criar localização
       const localizacao = await tx.localizacao.create({
         data: {
           latitude: data.latitude,
@@ -304,7 +301,7 @@ export class PlantaService {
         },
       });
       
-      // Create registration
+      // criar registro
       const registro = await tx.registroPlanta.create({
         data: {
           usuarioId: userId,
@@ -315,7 +312,7 @@ export class PlantaService {
         },
       });
       
-      // Upload images if provided
+      // upload de magens
       if (images && images.length > 0) {
         await Promise.all(
           images.map(async (image) => {
@@ -332,7 +329,7 @@ export class PlantaService {
         );
       }
       
-      // Get complete plant data
+      // revisar
       const plantaCompleta = await tx.planta.findUnique({
         where: { id: planta.id },
         include: {
@@ -409,7 +406,6 @@ export class PlantaService {
   
   async avaliarPlanta(userId: string, plantaId: string, avaliacao: number, comentario?: string): Promise<void> {
     await prisma.$transaction(async (tx) => {
-      // Check if user already rated
       const existingAvaliacao = await tx.avaliacao.findUnique({
         where: {
           usuarioId_plantaId: {
@@ -420,7 +416,6 @@ export class PlantaService {
       });
       
       if (existingAvaliacao) {
-        // Update existing rating
         await tx.avaliacao.update({
           where: {
             usuarioId_plantaId: {
@@ -431,7 +426,6 @@ export class PlantaService {
           data: { valor: avaliacao },
         });
       } else {
-        // Create new rating
         await tx.avaliacao.create({
           data: {
             usuarioId: userId,
@@ -441,9 +435,7 @@ export class PlantaService {
         });
       }
       
-      // Add comment if provided
       if (comentario) {
-        // Get the latest registration for this plant
         const ultimoRegistro = await tx.registroPlanta.findFirst({
           where: { plantaId },
           orderBy: { dataRegistro: 'desc' },
@@ -469,15 +461,12 @@ export class PlantaService {
       data: { status },
     });
     
-    // Update user reputation for moderation actions
     if (status === StatusRegistro.APROVADO) {
-      // Add reputation points for approval
-      // You can implement this based on your business logic
+      // TODO: reputação
     }
   }
   
   private async formatPlanta(planta: any): Promise<Planta> {
-    // Calculate average rating
     const avaliacoes = await prisma.avaliacao.findMany({
       where: { plantaId: planta.id },
     });
@@ -486,7 +475,6 @@ export class PlantaService {
       ? avaliacoes.reduce((sum, av) => sum + av.valor, 0) / avaliacoes.length
       : 0;
     
-    // Get image URL (first image from latest registration)
     const primeiroRegistro = planta.registros[0];
     let imagemUrl = null;
     
