@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PerfilUsuario {
+  USUARIO
+  MODERADOR
+  ADMIN
+}
+
+enum StatusRegistro {
+  PENDENTE
+  APROVADO
+  REJEITADO
+  EM_ANALISE
+}
+
+enum TipoCategoria {
+  COMESTIVEL
+  MEDICINAL
+  NATIVA
+  EXOTICA
+  URBANA
+  ORNAMENTAL
+}
+
+model Usuario {
+  id           String       @id @default(uuid())
+  nome         String
+  email        String       @unique
+  senhaHash    String
+  perfil       PerfilUsuario @default(USUARIO)
+  avatarUrl    String?
+  reputacao    Int          @default(0)
+  dataCadastro DateTime     @default(now())
+  
+  // Relacionamentos
+  plantasRegistradas RegistroPlanta[]
+  comentarios        Comentario[]
+  avaliacoes         Avaliacao[]
+  
+  @@map("usuarios")
+}
+
+model Planta {
+  id               String       @id @default(uuid())
+  nomePopular      String
+  nomeCientifico   String?
+  descricao        String
+  comestivel       Boolean      @default(false)
+  medicinal        Boolean      @default(false)
+  nativa           Boolean      @default(true)
+  usos             String?
+  cuidados         String?
+  criadoEm         DateTime     @default(now())
+  atualizadoEm     DateTime     @default(now())
+  
+  // Relacionamentos
+  categorias       CategoriaPlanta[]
+  registros        RegistroPlanta[]
+  imagens          ImagemPlanta[]
+  comentarios      Comentario[]
+  avaliacoes       Avaliacao[]
+  
+  @@map("plantas")
+}
+
+model Categoria {
+  id          String        @id @default(uuid())
+  nome        String        @unique
+  descricao   String?
+  tipo        TipoCategoria
+  criadoEm    DateTime      @default(now())
+  
+  // Relacionamentos
+  plantas     CategoriaPlanta[]
+  
+  @@map("categorias")
+}
+
+model CategoriaPlanta {
+  id          String     @id @default(uuid())
+  plantaId    String
+  categoriaId String
+  criadoEm    DateTime   @default(now())
+  
+  planta      Planta     @relation(fields: [plantaId], references: [id], onDelete: Cascade)
+  categoria   Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  
+  @@unique([plantaId, categoriaId])
+  @@map("categoria_planta")
+}
+
+model RegistroPlanta {
+  id            String         @id @default(uuid())
+  usuarioId     String
+  plantaId      String
+  localizacaoId String
+  observacoes   String?
+  status        StatusRegistro @default(PENDENTE)
+  dataRegistro  DateTime       @default(now())
+  atualizadoEm  DateTime       @default(now())
+  
+  // Relacionamentos
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  planta       Planta       @relation(fields: [plantaId], references: [id], onDelete: Cascade)
+  localizacao  Localizacao  @relation(fields: [localizacaoId], references: [id], onDelete: Cascade)
+  imagens      ImagemPlanta[]
+  comentarios  Comentario[]
+  
+  @@map("registro_plantas")
+}
+
+model Localizacao {
+  id         String    @id @default(uuid())
+  latitude   Float
+  longitude  Float
+  endereco   String?
+  descricao  String?
+  regiao     String?
+  criadoEm   DateTime  @default(now())
+  
+  // Relacionamentos
+  registros RegistroPlanta[]
+  
+  @@map("localizacoes")
+}
+
+model ImagemPlanta {
+  id             String         @id @default(uuid())
+  registroId     String
+  plantaId       String?
+  url            String
+  nomeArquivo    String
+  contentType    String
+  tamanho        Int
+  dataUpload     DateTime       @default(now())
+  
+  // Relacionamentos
+  registro       RegistroPlanta @relation(fields: [registroId], references: [id], onDelete: Cascade)
+  planta         Planta?        @relation(fields: [plantaId], references: [id], onDelete: Cascade)
+  
+  @@map("imagem_plantas")
+}
+
+model Comentario {
+  id             String         @id @default(uuid())
+  usuarioId      String
+  registroId     String
+  plantaId       String?
+  texto          String
+  avaliacao      Int?
+  editado        Boolean        @default(false)
+  data           DateTime       @default(now())
+  atualizadoEm   DateTime       @default(now())
+  
+  // Relacionamentos
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  registro       RegistroPlanta @relation(fields: [registroId], references: [id], onDelete: Cascade)
+  planta         Planta?        @relation(fields: [plantaId], references: [id], onDelete: Cascade)
+  
+  @@map("comentarios")
+}
+
+model Avaliacao {
+  id         String   @id @default(uuid())
+  usuarioId  String
+  plantaId   String
+  valor      Int
+  criadoEm   DateTime @default(now())
+  atualizadoEm DateTime @default(now())
+  
+  // Relacionamentos
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  planta     Planta   @relation(fields: [plantaId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId, plantaId])
+  @@map("avaliacoes")
+}
