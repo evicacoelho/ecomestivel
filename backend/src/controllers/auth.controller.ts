@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { AuthService } from '../services/auth.service';
 import { loginValidation, registerValidation } from '../utils/validation';
 import { validate } from '../middlewares/validation.middleware';
+import prisma from '../config/database';
+import { config } from '../config/environment';
+import { JwtPayload } from '../types/auth.types';
 
 const authService = new AuthService();
 
@@ -85,6 +89,56 @@ export class AuthController {
       res.json({ message: 'Senha redefinida com sucesso' });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
+    }
+  }
+
+  async verifyToken(req: Request, res: Response) {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ valid: false });
+      }
+      
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
+      
+      // Buscar usuário no banco
+      const user = await prisma.usuario.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          perfil: true,
+          avatarUrl: true,
+          dataCadastro: true,
+          reputacao: true,
+        },
+      });
+      
+      if (!user) {
+        return res.status(401).json({ valid: false });
+      }
+      
+      // Contar estatísticas
+      const [totalPlantas, totalComentarios] = await Promise.all([
+        prisma.registroPlanta.count({ where: { usuarioId: user.id } }),
+        prisma.comentario.count({ where: { usuarioId: user.id } }),
+      ]);
+      
+      return res.json({
+        valid: true,
+        user: {
+          ...user,
+          totalPlantas,
+          totalComentarios,
+          dataCadastro: user.dataCadastro.toISOString(), // Converter para string
+        },
+      });
+    } catch (error) {
+      console.error('Erro na verificação do token:', error);
+      return res.status(401).json({ valid: false });
     }
   }
 }

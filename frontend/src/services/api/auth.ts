@@ -1,4 +1,24 @@
-import apiClient from './client';
+import apiClient, { setAuthToken } from './client';
+
+export interface AuthUser {
+  id: string;
+  nome: string;
+  email: string;
+  perfil: 'USUARIO' | 'MODERADOR' | 'ADMIN';
+  avatarUrl?: string;
+  dataCadastro: string;
+  reputacao: number;
+}
+
+export interface UserProfile extends AuthUser {
+  totalPlantas: number;
+  totalComentarios: number;
+}
+
+export interface AuthResponse {
+  user: AuthUser;
+  token: string;
+}
 
 export interface LoginRequest {
   email: string;
@@ -41,12 +61,16 @@ export const authApi = {
   // login
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
+    const { token, user } = response.data;
+    setAuthToken(token);
     return response.data;
   },
 
   // registro
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>('/auth/register', data);
+    const { token, user } = response.data;
+    setAuthToken(token);
     return response.data;
   },
 
@@ -74,35 +98,25 @@ export const authApi = {
 
   // logout
   logout: (): void => {
-    localStorage.removeItem('token');
-    delete apiClient.defaults.headers.common['Authorization'];
+    setAuthToken(null);
   },
 
   // verificar token
   verifyToken: async (): Promise<{ valid: boolean; user?: UserProfile }> => {
-    // MOCK DATA
     const token = localStorage.getItem('token');
     if (!token) {
       return { valid: false };
     }
 
     try {
-      // MOCK DATA
+      const user = await authApi.getProfile();
       return {
         valid: true,
-        user: {
-          id: '1',
-          nome: 'urutau',
-          email: 'teste@urutau.com',
-          perfil: 'USUARIO',
-          dataCadastro: new Date().toISOString(),
-          reputacao: 100,
-          totalPlantas: 5,
-          totalComentarios: 12,
-        },
+        user,
       };
     } catch (error) {
+      setAuthToken(null);
       return { valid: false };
     }
   },
-};
+}

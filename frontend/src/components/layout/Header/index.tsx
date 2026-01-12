@@ -92,7 +92,7 @@ const Header: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => navigate('/registrar')}
+            onClick={() => navigate('/registrar-planta')}
             sx={{ textTransform: 'none', ml: 1 }}
           >
             Registrar
@@ -189,7 +189,7 @@ const Header: React.FC = () => {
         <MenuItem onClick={() => navigate('/plantas')}>
           <PlantIcon sx={{ mr: 2 }} /> Plantas
         </MenuItem>
-        <MenuItem onClick={() => navigate('/registrar')}>
+        <MenuItem onClick={() => navigate('/registrar-planta')}>
           <AddIcon sx={{ mr: 2 }} /> Registrar Planta
         </MenuItem>
         {isAuthenticated && (

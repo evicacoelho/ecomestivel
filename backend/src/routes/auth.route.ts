@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
-import { authenticate } from '../middlewares/auth'
+import { authenticate } from '../middlewares/auth';
+
 const router = Router();
 const authController = new AuthController();
 
@@ -9,8 +10,9 @@ router.post('/login', authController.login.bind(authController));
 router.post('/forgot-password', authController.forgotPassword.bind(authController));
 router.post('/reset-password', authController.resetPassword.bind(authController));
 
-// PROTECTED ROUTE
+// Rotas protegidas
 router.get('/profile', authenticate, authController.getProfile.bind(authController));
 router.put('/profile', authenticate, authController.updateProfile.bind(authController));
+router.get('/verify-token', authenticate, authController.verifyToken.bind(authController)); // ← ADICIONE ESTA LINHA
 
 export default router;

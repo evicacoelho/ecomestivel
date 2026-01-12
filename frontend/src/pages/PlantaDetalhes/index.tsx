@@ -256,7 +256,7 @@ const PlantaDetalhes: React.FC = () => {
               variant="contained"
               fullWidth
               sx={{ mb: 1 }}
-              onClick={() => navigate(`/registrar?editar=${planta.id}`)}
+              onClick={() => navigate(`/registrar-planta?editar=${planta.id}`)}
               startIcon={<EditIcon />}
             >
               Sugerir Edição
@@ -265,7 +265,7 @@ const PlantaDetalhes: React.FC = () => {
             <Button
               variant="outlined"
               fullWidth
-              onClick={() => navigate('/registrar')}
+              onClick={() => navigate('/registrar-planta')}
             >
               Registrar Planta Similar
             </Button>

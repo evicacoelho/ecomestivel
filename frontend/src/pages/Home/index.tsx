@@ -80,7 +80,7 @@ const Home: React.FC = () => {
                 </Button>
                 <Button
                   component={Link}
-                  to="/registrar"
+                  to="/registrar-planta"
                   variant="outlined"
                   size="large"
                   startIcon={<AddIcon />}

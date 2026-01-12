@@ -32,6 +32,8 @@ import { plantaApi } from '../../../services/api/plantas';
 import InteractiveMap from '../../mapa/InteractiveMap';
 import ErrorMessage from '../../common/ErrorMessage';
 
+
+
 const schema = yup.object({
   nomePopular: yup.string().required('Nome popular é obrigatório').min(3, 'Mínimo 3 caracteres'),
   nomeCientifico: yup.string().optional().default(''),
@@ -47,14 +49,13 @@ const schema = yup.object({
   observacoes: yup.string().optional().default(''),
 });
 
-type FormData = yup.InferType<typeof schema>;
+type PlantaFormData = yup.InferType<typeof schema>;
 
 interface PlantaFormProps {
   initialPosition?: { lat: number; lng: number };
   onSuccess?: () => void;
 }
 
-// passos do form 
 const steps = ['Informações Básicas', 'Características', 'Localização', 'Revisão'];
 
 const PlantaForm: React.FC<PlantaFormProps> = ({ initialPosition, onSuccess }) => {
@@ -72,7 +73,7 @@ const PlantaForm: React.FC<PlantaFormProps> = ({ initialPosition, onSuccess }) =
     setValue,
     watch,
     trigger,
-  } = useForm<FormData>({
+  } = useForm<PlantaFormData>({  // USAR PlantaFormData AQUI
     resolver: yupResolver(schema),
     defaultValues: {
       comestivel: false,
@@ -91,28 +92,7 @@ const PlantaForm: React.FC<PlantaFormProps> = ({ initialPosition, onSuccess }) =
   });
 
   const mutation = useMutation({
-    mutationFn: async (data: FormData & { images: File[] }) => {
-      const formData = new FormData();
-      
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'images') {
-          if (Array.isArray(value)) {
-            value.forEach((item) => {
-              if (item) formData.append(`${key}[]`, item);
-            });
-          } else if (typeof value === 'boolean') {
-            formData.append(key, value.toString());
-          } else if (value !== undefined && value !== null && value !== '') {
-            formData.append(key, String(value));
-          }
-        }
-      });
-      
-      // adicionar imagens
-      data.images.forEach((image) => {
-        formData.append('images', image);
-      });
-      
+    mutationFn: async (formData: FormData) => {  // FormData NATIVO AQUI
       return plantaApi.cadastrar(formData);
     },
     onSuccess: () => {
@@ -168,8 +148,33 @@ const PlantaForm: React.FC<PlantaFormProps> = ({ initialPosition, onSuccess }) =
     setActiveStep((prev) => prev - 1);
   };
 
-  const onSubmit = (data: FormData) => {
-    mutation.mutate({ ...data, images });
+  const onSubmit = (data: PlantaFormData) => {  // USAR PlantaFormData AQUI
+    const formData = new FormData();  // FormData NATIVO
+    
+    // Adicionar dados da planta
+    const plantaData = {
+      nomePopular: data.nomePopular,
+      nomeCientifico: data.nomeCientifico || '',
+      descricao: data.descricao,
+      categoria: data.categoria,
+      comestivel: data.comestivel,
+      medicinal: data.medicinal,
+      nativa: data.nativa,
+      usos: data.usos || '',
+      cuidados: data.cuidados || '',
+      latitude: data.latitude,
+      longitude: data.longitude,
+      observacoes: data.observacoes || '',
+    };
+    
+    formData.append('dados', JSON.stringify(plantaData));
+    
+    // Adicionar imagens
+    images.forEach((image) => {
+      formData.append('images', image);
+    });
+    
+    mutation.mutate(formData);
   };
 
   const watchedValues = watch();

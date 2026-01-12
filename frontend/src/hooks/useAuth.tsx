@@ -1,133 +1,121 @@
-import { useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '../store';
-import {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-  logout as logoutAction,
-  registerStart,
-  registerSuccess,
-  registerFailure,
-  updateUser,
-  clearError,
-  checkAuthStart,
-  checkAuthSuccess,
-  checkAuthFailure,
-} from '../store/slices/authSlice';
-import { authApi, setAuthToken } from '../services/api';
+// src/hooks/useAuth.tsx
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { authApi } from '../services/api/auth';
+import { type UserProfile } from '../services/api/auth';
+
+interface AuthContextType {
+  user: UserProfile | null;
+  loading: boolean;
+  isAuthenticated: boolean;  // ← ADICIONE ESTA LINHA
+  login: (email: string, senha: string) => Promise<void>;
+  register: (nome: string, email: string, senha: string, confirmarSenha: string) => Promise<void>;
+  logout: () => void;
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
-  const dispatch = useAppDispatch();
-  const { user, token, isAuthenticated, loading, error } = useAppSelector(
-    (state) => state.auth
-  );
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth deve ser usado dentro de AuthProvider');
+  }
+  return context;
+};
 
-  // login
-  const login = useCallback(
-    async (email: string, senha: string) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Computed property para isAuthenticated
+  const isAuthenticated = !!user;
+
+  useEffect(() => {
+    const initAuth = async () => {
+      console.log('🔄 Inicializando autenticação...');
       try {
-        dispatch(loginStart());
-        const response = await authApi.login({ email, senha });
-        setAuthToken(response.token);
-        dispatch(loginSuccess(response));
-        return { success: true, data: response };
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || 'Erro ao fazer login';
-        dispatch(loginFailure(errorMessage));
-        return { success: false, error: errorMessage };
+        const token = localStorage.getItem('token');
+        console.log('🔍 Token no localStorage:', token ? `SIM (${token.substring(0, 20)}...)` : 'NÃO');
+        if (token) {
+          console.log('🔄 Verificando token com backend...');
+          const { valid, user: userData } = await authApi.verifyToken();
+          console.log('✅ Resposta da verificação:', { valid, userData: userData?.email });
+          if (valid && userData) {
+            console.log('👤 Usuário autenticado:', userData.email);
+            setUser(userData);
+          } else {
+            console.log('❌ Token inválido ou expirado');
+            authApi.logout();
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+        authApi.logout();
+      } finally {
+        setLoading(false);
+        console.log('🏁 Autenticação inicializada');
       }
-    },
-    [dispatch]
-  );
+    };
 
-  // registro
-  const register = useCallback(
-    async (nome: string, email: string, senha: string, confirmarSenha: string) => {
-      try {
-        dispatch(registerStart());
-        const response = await authApi.register({ nome, email, senha, confirmarSenha });
-        setAuthToken(response.token);
-        dispatch(registerSuccess(response));
-        return { success: true, data: response };
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || 'Erro ao registrar';
-        dispatch(registerFailure(errorMessage));
-        return { success: false, error: errorMessage };
-      }
-    },
-    [dispatch]
-  );
+    initAuth();
+  }, []);
 
-  // logout
-  const logout = useCallback(() => {
-    authApi.logout();
-    dispatch(logoutAction());
-  }, [dispatch]);
-
-  // verificar autenticação
-  const checkAuth = useCallback(async () => {
+  const login = async (email: string, senha: string) => {
+    setLoading(true);
     try {
-      dispatch(checkAuthStart());
-      const result = await authApi.verifyToken();
-      
-      if (result.valid && result.user) {
-        dispatch(checkAuthSuccess(result.user));
-      } else {
-        dispatch(checkAuthFailure());
-      }
-    } catch (error) {
-      dispatch(checkAuthFailure());
+      const response = await authApi.login({ email, senha });
+      const userProfile = await authApi.getProfile();
+      setUser(userProfile);
+    } catch (err: any) {
+      throw err;
+    } finally {
+      setLoading(false);
     }
-  }, [dispatch]);
+  };
 
-  // atualizar dados do usuário
-  const updateUserData = useCallback(
-    async (userData: Partial<typeof user>) => {
-      if (!userData) return;
-      
-      try {
-        const updatedUser = await authApi.updateProfile(userData);
-        dispatch(updateUser(updatedUser));
-        return { success: true, data: updatedUser };
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || 'Erro ao atualizar perfil';
-        return { success: false, error: errorMessage };
-      }
-    },
-    [dispatch, user]
-  );
+  const register = async (nome: string, email: string, senha: string, confirmarSenha: string) => {
+    setLoading(true);
+    try {
+      const response = await authApi.register({ nome, email, senha, confirmarSenha });
+      const userProfile = await authApi.getProfile();
+      setUser(userProfile);
+    } catch (err: any) {
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // limpar erros
-  const clearAuthError = useCallback(() => {
-    dispatch(clearError());
-  }, [dispatch]);
+  const logout = () => {
+    authApi.logout();
+    setUser(null);
+  };
 
-  // MOCK DATA
-  const mockLogin = useCallback(() => {
-    // ROUTE authApi.verifyToken
-    checkAuth();
-  }, [checkAuth]);
+  const updateProfile = async (data: Partial<UserProfile>) => {
+    setLoading(true);
+    try {
+      const updatedUser = await authApi.updateProfile(data);
+      setUser(updatedUser);
+    } catch (err: any) {
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return {
-    // estado
+  const value = {
     user,
-    token,
-    isAuthenticated,
     loading,
-    error,
-    
-    // ações
+    isAuthenticated,  // ← ADICIONE ESTA LINHA
     login,
     register,
     logout,
-    checkAuth,
-    updateUser: updateUserData,
-    clearError: clearAuthError,
-    mockLogin,
-    
-    // utilitários
-    isAdmin: user?.perfil === 'ADMIN',
-    isModerator: user?.perfil === 'MODERADOR' || user?.perfil === 'ADMIN',
-    isUser: user?.perfil === 'USUARIO',
+    updateProfile,
   };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

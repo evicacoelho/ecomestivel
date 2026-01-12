@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -60,12 +60,18 @@ apiClient.interceptors.response.use(
 );
 
 export const setAuthToken = (token: string | null) => {
+  console.log('🔑 setAuthToken chamado com token:', token ? 'SIM' : 'NÃO');
   if (token) {
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     localStorage.setItem('token', token);
+    console.log('✅ Token salvo no localStorage');
+
+    const savedToken = localStorage.getItem('token');
+    console.log('📋 Token recuperado do localStorage:', savedToken?.substring(0, 20) + '...');
   } else {
     delete apiClient.defaults.headers.common['Authorization'];
     localStorage.removeItem('token');
+    console.log('🗑️ Token removido do localStorage');
   }
 };
 

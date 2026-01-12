@@ -95,7 +95,7 @@ const MinhasPlantas: React.FC = () => {
         </Typography>
         <Button
           component={Link}
-          to="/registrar"
+          to="/registrar-planta"
           variant="contained"
           startIcon={<AddIcon />}
         >
@@ -140,7 +140,7 @@ const MinhasPlantas: React.FC = () => {
             </Typography>
             <Button
               component={Link}
-              to="/registrar"
+              to="/registrar-planta"
               variant="contained"
               startIcon={<AddIcon />}
             >
